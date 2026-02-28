@@ -73,4 +73,4 @@ graph TD
 
 ## 📜 License
 Internal Hackathon Project - Not for Production Clinical Use.
-Designed & Developed with ❤️ by Antigravity AI.
+Designed & Developed with ❤️ for Healthcare Innovation.
