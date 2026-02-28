@@ -1,140 +1,76 @@
-# 🛡️ SentinelRx
-### Autonomous Pharmacovigilance Agent for Adverse Event Signal Detection
+# 🛡️ SentinelRx: AI-Powered Pharmacovigilance Engine
 
-SentinelRx is a state-of-the-art autonomous AI agent designed to revolutionize drug safety. By ingesting massive streams of post-market data—from structured FDA FAERS reports to unstructured social media discussions—it identifies novel adverse event (AE) signals, performs statistical validation, and synthesizes clinical-grade safety narratives.
+**SentinelRx** is a next-generation safety surveillance platform designed for real-time detection and analysis of adverse drug events (ADEs). By fusing global data streams (FAERS, Reddit, EHRs) with specialized clinical reasoning, it transforms raw signal noise into actionable medical insights.
+
+## 🚀 Hackathon Novelty (The "Uniqueness" Factor)
+SentinelRx differentiates itself from standard signal detection tools through two primary innovations:
+1.  **MedGemma-7B Clinical Grounding**: Unlike generic LLMs, SentinelRx utilizes a simulated MedGemma-7B reasoning layer to provide pharmacological context for every detected signal, explaining *why* a reaction is physiologically plausible.
+2.  **SIDER Ground-Truth Benchmarking**: Every signal is cross-referenced against the **Side Effect Resource (SIDER)**. The system automatically classifies signals as **"SIDER: KNOWN"** (benchmarked) or **"SIDER: NOVEL"** (potentially undiscovered safety signal), providing instant clinical priority.
 
 ---
 
 ## 🏗️ System Architecture
 
-SentinelRx is built as a distributed data pipeline, combining streaming engineering with biomedical NLP and LLM reasoning.
+### Data Flow & Processing
+The engine operates on a high-concurrency event-driven architecture:
 
 ```mermaid
 graph TD
-    subgraph Data Sources
-        FAERS["FDA FAERS (Quarterly XML/JSON)"]
-        Reddit["Social Media (Reddit/PRAW)"]
-        EHR["EHR Text Snippets"]
-    end
-
-    subgraph Ingestion Layer [Kafka]
-        P1["FAERS Producer"]
-        P2["Reddit Producer"]
-        KTopic["Raw Data Topics"]
-    end
-
-    subgraph Processing Layer [NLP & NER]
-        Filter["Medical Relevance Classifier"]
-        BioBERT["BioBERT NER Consumer"]
-        ETopic["Processed Entity Topic"]
-    end
-
-    subgraph Analytics Layer [DuckDB & dbt]
-        Agg["Signal Aggregator"]
-        Stats["PRR & ROR Calculation"]
-        Flag["Signal Trigger (PRR > 2)"]
-    end
-
-    subgraph GenAI Layer [LangChain & GPT-4o]
-        Agent["Narrative Synthesis Agent"]
-        Repo["Safety Narrative Repository"]
-    end
-
-    subgraph Application Layer
-        API["FastAPI REST Endpoints"]
-        UI["Streamlit Signal Dashboard"]
-    end
-
-    FAERS --> P1
-    Reddit --> P2
-    P1 --> KTopic
-    P2 --> KTopic
-    KTopic --> Filter
-    Filter --> BioBERT
-    BioBERT --> ETopic
-    ETopic --> Agg
-    Agg --> Stats
-    Stats --> Flag
-    Flag --> Agent
-    Agent --> Repo
-    Stats --> API
-    Repo --> API
-    API --> UI
+    A[FAERS Quarterly Dump] -->|Kafka Producer| B(Kafka Topic: raw_faers)
+    C[Reddit /r/Medicine] -->|PRAW Streamer| D(Kafka Topic: social_signals)
+    B & D --> E[NLP Engine: BioBERT v2.1]
+    E -->|NER extraction| F{Medical Relevance Classifier}
+    F -->|Validated| G[(DuckDB: Signal Analytics)]
+    G -->|PRR/ROR Calc| H[LLM Narrative Agent]
+    H -->|MedGemma Grounding| I[Interactive Neon Dashboard]
 ```
 
 ---
 
 ## 🛠️ Tech Stack
-
-### **Data Engineering**
-- **Apache Kafka**: Streaming ingestion of high-volume safety reports.
-- **DuckDB**: Embedded analytical database for real-time disproportionality analysis.
-- **dbt**: Transforming raw entity extractions into structured signal reports.
-
-### **Natural Language Processing**
-- **BioBERT**: Domain-specific BERT model for Biomedical Named Entity Recognition (NER).
-- **HuggingFace Transformers**: Deployment of AE/Drug extraction pipelines.
-
-### **Artificial Intelligence**
-- **GPT-4o**: Large Language Model for clinical reasoning and narrative synthesis.
-- **LangChain**: Orchestration of the narrative agent's workflows.
-
-### **Backend & Visualization**
-- **FastAPI**: High-performance REST API for signal discovery.
-- **Streamlit**: Interactive dashboard for pharmacovigilance specialists.
+- **Core Engine**: Python 3.10+
+- **Data Infrastructure**: Kafka (Stream Processing), DuckDB (OLAP Analytics)
+- **NLP/AI**: BioBERT (NER), GPT-4o (Narrative Synthesis), MedGemma-7B (Simulation for Reasoning)
+- **API/Web**: FastAPI (Back-end), Vanilla CSS/JS Neon Dashboard (Front-end)
+- **Data Sources**: FDA openAPI (FAERS), PRAW (Reddit), SIDER (Known side effects)
 
 ---
 
-## 🌟 The Novelty: Why SentinelRx?
-
-Traditional pharmacovigilance is often slow, manual, and reactive. SentinelRx introduces three key innovations:
-
-1.  **Multi-Source Fusion**: It bridges the gap between official regulatory data (FAERS) and the "Patient Voice" on social media, identifying signals that may not yet have reached clinical reports.
-2.  **Autonomous Disproportionality**: Instead of static reports, it uses rolling-window statistical analysis (PRR/ROR) to flag signals the moment they cross significance thresholds.
-3.  **LLM-Driven Narratives**: It transforms raw coefficients into human-readable, context-aware safety summaries, significantly reducing the cognitive load on safety officers.
-
----
-
-## 🎯 PRD Objectives
-
-- [x] **Autonomous Ingestion**: Automated pipelines for FDA and Social Media data.
-- [x] **Biomedical NER**: Extraction of Drug, Event, and Severity using BioBERT.
-- [x] **Signal Validation**: Implementation of PRR (Proportional Reporting Ratio) & ROR (Reporting Odds Ratio).
-- [x] **Structured Narratives**: GPT-4o powered synthesis of safety signals.
-- [x] **Developer Tools**: Exposed via REST API and ready for Docker deployment.
+## 📊 Key Features
+- **Real-time Signal Sync**: Execute on-demand synchronization across clinical and social data nodes.
+- **Neon Dark UI**: A high-performance, glassmorphic dashboard designed for professional medical surveillance.
+- **Multi-Page Command Center**:
+    - **Active Signals**: Real-time PRR/ROR disproportionality table.
+    - **Regional Trends**: Global hotspot mapping for geographic ADE tracking.
+    - **System Audit Logs**: Traceable logs of AI reasoning and data ingestion events.
+- **Automated Narrative Synthesis**: High-fidelity medical reports generated instantly for discovered signals.
 
 ---
 
-## 🚀 Getting Started
+## 🛠️ Installation & Setup (Local)
 
-### 1. Prerequisites
-- Docker & Docker Compose
-- Python 3.9+
-- OpenAI API Key
-- Reddit API Credentials
+1.  **Clone the Repo**:
+    ```bash
+    git clone https://github.com/USER_NAME/SentinelRx.git
+    cd SentinelRx
+    ```
 
-### 2. Installation
-```bash
-git clone https://github.com/your-username/sentinelrx.git
-cd sentinelrx
-pip install -r requirements.txt
-cp .env.example .env # Update with your keys
-```
-
-### 3. Execution
-1.  **Start Infrastructure**:
+2.  **Infrastructure**:
+    Ensure Kafka and Zookeeper are running.
     ```bash
     docker-compose up -d
     ```
-2.  **Run Pipeline Components**:
-    - Ingest FAERS Data: `python src/ingestion/faers_producer.py`
-    - Start NER Processing: `python src/nlp/ner_consumer.py`
-    - Start Signal Analytics: `python src/analytics/signal_aggregator.py`
-3.  **Launch Interface**:
-    - API: `python src/api/main.py`
-    - Dashboard: `streamlit run src/dashboard/app.py`
+
+3.  **Dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4.  **Launch Dashboard**:
+    Open `demo_dashboard.html` in any modern browser for the interactive experience.
 
 ---
 
-## ⚠️ Disclaimer
-*SentinelRx is a statistical signal detection tool. It identifies associations in reporting data. These signals represent potential safety concerns and do NOT imply confirmed causal relationships. All outputs should be reviewed by a qualified Pharmacovigilance professional.*
+## 📜 License
+Internal Hackathon Project - Not for Production Clinical Use.
+Designed & Developed with ❤️ by Antigravity AI.
