@@ -1,0 +1,15 @@
+kafka-python
+praw
+pandas
+duckdb
+dbt-duckdb
+fastapi
+uvicorn
+transformers
+torch
+langchain
+langchain-openai
+python-dotenv
+pydantic
+xmltodict
+requests
